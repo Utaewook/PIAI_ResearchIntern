@@ -1,0 +1,63 @@
+
+# environments
+venv/
+env/
+.env/
+.venv/
+.env
+
+
+# image files
+*.png
+*.jpeg
+*.jpg
+*.pdf
+*.tiff
+*.bmp
+
+# models
+*.pt
+*.pth
+*.onnx
+
+# raw files
+*.xlsx
+*.xls
+*.csv
+
+# compiled byte codes
+*.pyc
+*.pyo
+__pycache__/
+
+# IDE settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# jupyter
+*.ipynb_checkpoints/
+
+# logs, temps
+*.log
+logs/
+*.swp
+.pytest_cache/
+
+# builds
+build/
+dist/
+*.egg-info/
+
+# cached
+.cache/
+.tmp/
+.DS_Store
+
+# compressed files
+*.zip
+*.tar
+*.7z
+*.gz
+
