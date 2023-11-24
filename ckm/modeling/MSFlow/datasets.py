@@ -2,10 +2,12 @@ import os
 from PIL import Image
 import numpy as np
 import torch
+import cv2
 from torchvision.io import read_video, write_jpeg
 from torch.utils.data import Dataset
 from torchvision import transforms as T
 from torchvision.transforms import InterpolationMode
+
 
 __all__ = ('MVTecDataset', 'CKMDataset',)
 
@@ -167,29 +169,29 @@ class CKMDataset(Dataset):
         return self.normalize(self.transform_x(img))
 
 
-# 카메라 혹은 이미지 스트림을 가져와서 데이터 셋으로 만듬
-class ImageStreamDataset(Dataset):
-    def __init__(self, c, stream):
-        self.input_size = c.input_size
+# 카메라 혹은 이미지 스트림을 가져와서 데이터 셋으로 만들어야 함
+# 프레임을 멀티스레드로 읽어서 frame_buffer를 채우는 과정
+# getitems로 이미지를 반환하는 메소드 또한 필요함
 
-        self.stream = stream
+# class ImageStreamDataset(Dataset):
+#     def __init__(self, c, camera_id=0):
+#         self.cap = cv2.VideoCapture(camera_id)
+#         self.c = c
+#         self.crop_size = c.input_size[0]
+#         self.frame_buffer = []
 
-        # set transforms
-        self.transform_frame = T.Compose([
-            T.Resize(c.input_size, InterpolationMode.LANCZOS),
-            T.ToTensor()])
 
-        self.normalize = T.Compose([T.Normalize(c.img_mean, c.img_std)])
+#     def __len__(self):
+#         return len(self.frame_buffer)        
 
-    def __getitem__(self, idx):
-        ret, frame = self.stream.read()
+#     def __getitem__(self, idx):
+#         ret, frame = self.cap.read()
+#         if not ret:
+#             raise RuntimeError('failed to capture image')
 
-        if not ret:
-            raise StopIteration
+#         height, width, _ = frame.shape
 
-        frame = self.normalize(self.transform_frame(frame))
-
-        return frame
-
-    def __len__(self):
-        return float('inf')
+#         for y in range(0, height, self.crop_size):
+#             for x in range(0, width, self.crop_size):
+#                 patch = frame[y:y+self.crop_size, x:x+self.crop_size]
+#                 self.frame_buffer.append(patch/255.0)

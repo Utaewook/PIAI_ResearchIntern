@@ -24,6 +24,12 @@ env/
 *.xlsx
 *.xls
 *.csv
+*.tsv
+
+# dacon files
+*.gpkg
+*.gpkg-shm
+*.gpkg-wal
 
 # compiled byte codes
 *.pyc

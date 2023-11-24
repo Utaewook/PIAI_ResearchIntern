@@ -34,6 +34,7 @@ def model_forward(c, extractor, parallel_flows, fusion_flow, image):
         B, _, H, W = y.shape
         cond = positionalencoding2d(c_cond, H, W).to(c.device).unsqueeze(0).repeat(B, 1, 1, 1)
         z, jac = parallel_flow(y, [cond, ])
+        del cond
         z_list.append(z)
         parallel_jac_list.append(jac)
 
@@ -87,7 +88,6 @@ def inference_meta_epoch(c, epoch, loader, extractor, parallel_flows, fusion_flo
     epoch_loss = 0.
     image_count = 0
     gt_label_list = list()
-    # gt_mask_list = list()
     outputs_list = [list() for _ in parallel_flows]
     size_list = []
     start = time.time()
@@ -116,6 +116,7 @@ def inference_meta_epoch(c, epoch, loader, extractor, parallel_flows, fusion_flo
             loss = loss.mean()
             epoch_loss += t2np(loss)
             image_count += image.shape[0]
+            del image
 
         # 모든 레벨에 대한 손실을 합산하고, 야코비안을 뺀 후 평균을 구한다 = 이미지에 대한 손실
         mean_epoch_loss = epoch_loss / image_count
@@ -170,41 +171,24 @@ def train(c):
         anomaly_score, anomaly_score_map_add, anomaly_score_map_mul = post_process(c, size_list, outputs_list)
         best_det_auroc = eval_det_loc_only(det_auroc_obs, epoch, gt_label_list, anomaly_score)
 
-
-        for i, (src, anomaly_map) in enumerate(zip(test_dataset, anomaly_score_map_add)):
-            img,_ = src
+        # anomaly map, 원본, segmenatation 이미지 저장
+        # for i, (src, anomaly_map) in enumerate(zip(test_dataset, anomaly_score_map_add)):
+        #     img,_ = src
             
-            seg_img = segmentation(img,anomaly_map)
+        #     seg_img = segmentation(img,anomaly_map)
 
-            normalized_image = (img - img.min()) / (img.max() - img.min())
-            original_image_np = (normalized_image.cpu().squeeze(0).permute(1, 2, 0).numpy() * 255).astype(np.uint8)
-            original_image_np = np.ascontiguousarray(original_image_np)
+        #     normalized_image = (img - img.min()) / (img.max() - img.min())
+        #     original_image_np = (normalized_image.cpu().squeeze(0).permute(1, 2, 0).numpy() * 255).astype(np.uint8)
+        #     original_image_np = np.ascontiguousarray(original_image_np)
 
 
-            plt.imsave(f'./segmentation/src_image/src_{i}.png', original_image_np)
-            plt.imsave(f'./segmentation/map/map_{i}.png', anomaly_map)
-            plt.imsave(f"./segmentation/seg_image/{'bad'if anomaly_score[i] > c.threshold else 'good'}_{i}_seg.jpeg",seg_img)
+        #     plt.imsave(f'./segmentation/src_image/src_{i}.png', original_image_np)
+        #     plt.imsave(f'./segmentation/map/map_{i}.png', anomaly_map)
+        #     plt.imsave(f"./segmentation/seg_image/{'bad'if anomaly_score[i] > c.threshold else 'good'}_{i}_seg.jpeg",seg_img)
             
             
-
-
-        # anomaly score 및 라벨값 저장
-        # with open('det_score.txt', 'w') as f:
-        #     for s, gt in zip(anomaly_score, gt_label_list):
-        #         f.write(f'{gt}\t{s}\n')
-        #
-        # os.chdir('anomaly_maps')
-        #
-        # import matplotlib.pyplot as plt
-        # for i, (a, m, gt) in enumerate(zip(anomaly_score_map_add, anomaly_score_map_mul,gt_label_list)):
-        #     plt.imsave(f"{'bad'if gt==1 else 'good'}_{i}_map_add.jpeg", a)
-        #     plt.imsave(f"{'bad'if gt==1 else 'good'}_{i}_map_mul.jpeg", m)
 
         print(f"test det auroc: {best_det_auroc}\nanomaly score: {anomaly_score}, len({len(anomaly_score)})")
-
-
-        # print(f'lengths:\n\tanomaly score: {len(anomaly_score)}\n\tanomaly map add: {len(anomaly_score_map_add)}\n\tanomaly map mul: {len(anomaly_score_map_mul)}')
-        # best_det_auroc, best_loc_auroc, best_loc_pro = eval_det_loc(det_auroc_obs, loc_auroc_obs, loc_pro_obs, epoch, gt_label_list, anomaly_score, gt_mask_list, anomaly_score_map_add, anomaly_score_map_mul, c.pro_eval)
 
         return
 
@@ -237,6 +221,7 @@ def train(c):
         decay_scheduler = None
 
 
+    print('train start')
     # train epoch 시작
     for epoch in range(start_epoch, c.meta_epochs):
         print()

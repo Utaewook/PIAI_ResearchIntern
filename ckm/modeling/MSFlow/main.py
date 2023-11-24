@@ -64,8 +64,8 @@ def inspect_args(mode):
     import importlib
     import inspect
 
-    # 모듈 이름
-    module_name = "default"  # 실제 모듈 이름으로 변경해야 합니다
+    # 파라미터 모듈 이름
+    module_name = "default"
 
     # 모듈을 동적으로 import
     module = importlib.import_module(module_name)
@@ -111,6 +111,7 @@ def gpu_memory(exit_flag):
         except Exception as e:
             print(f"Error while monitoring GPU memory usage: {e}")
 
+    time.sleep(0.4)
     if gpu_memory_list:
         min_memory = min(gpu_memory_list)
         max_memory = max(gpu_memory_list)
@@ -134,28 +135,27 @@ def main(c):
         from inference import model_usage
         model_usage(c)
         return
-
+    print(f'extractor = {c.extractor}')
     train(c)
 
 if __name__ == '__main__':
     import default as c
-    # exit_flag = threading.Event()
+    exit_flag = threading.Event()
 
-    # gpu_percentage_thread = threading.Thread(
-    #     target=gpu_percentage,
-    #     args=(exit_flag,)
-    # )
-    # gpu_percentage_thread.start()
+    gpu_percentage_thread = threading.Thread(
+        target=gpu_percentage,
+        args=(exit_flag,)
+    )
+    gpu_percentage_thread.start()
 
-    # gpu_usage_thread = threading.Thread(
-    #     target=gpu_memory,
-    #     args=(exit_flag,)
-    # )
-    # gpu_usage_thread.start()
+    gpu_usage_thread = threading.Thread(
+        target=gpu_memory,
+        args=(exit_flag,)
+    )
+    gpu_usage_thread.start()
 
     main(c)
 
-    # exit_flag.set()
-    # gpu_percentage_thread.join()
-    # time.sleep(1)
-    # gpu_usage_thread.join()
+    exit_flag.set()
+    gpu_percentage_thread.join()
+    gpu_usage_thread.join()

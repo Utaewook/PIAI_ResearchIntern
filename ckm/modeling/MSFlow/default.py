@@ -23,7 +23,7 @@ workers = 4
 
 
 # dataset
-data_path = './data/CKM'
+data_path = '../../dataset/CKM'
 # data_path = './data/MVTec/grid'
 # data_path = 'C:/Users/piai/Desktop/미라벨불량'
 
