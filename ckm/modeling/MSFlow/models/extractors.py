@@ -26,7 +26,10 @@ def build_extractor(c):
             output_channels.append(eval('extractor.layer{}[-1].conv3.out_channels'.format(i+1)))
     else:
         for i in range(3):
-            output_channels.append(getattr(extractor, 'layer{}'.format(i+1))[-1].conv2.out_channels)
+            # output_channels.append(getattr(extractor, 'layer{}'.format(i+1))[-1].conv2.out_channels)
+            # output_channels.append(extractor.eval('layer{}'.format(i+1))[-1].conv2.out_channels)
+            output_channels.append(getattr(extractor, f'layer{i+1}')[-1].conv2.out_channels)
+
 
     # 생성한 extractor 객체와 채널 수를 저장한 리스트를 반환
     print("Channels of extracted features:", output_channels)

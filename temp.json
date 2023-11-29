@@ -1,0 +1,18 @@
+{
+    "gpu_num": "int value -> 0 or 1",
+    "gpu_percentage":{
+        "min_usage": "float value -> %",
+        "max_usage": "float value -> %",
+        "avg_usage": "float value -> %"
+    },
+    "gpu_memory":{
+        "min_memory": "float value -> MB",
+        "max_memory": "float value -> MB",
+        "avg_memory": "float value -> MB"
+    },
+    "cuda_memory":{
+        "cuda_min_memory": "float value -> MB",
+        "cuda_max_memory": "float value -> MB",
+        "cuda_avg_memory": "float value -> MB"
+    }
+}

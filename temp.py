@@ -1,36 +1,99 @@
-import os
-import cv2
-import numpy as np
-import tifffile
+import time
+import GPUtil
+import threading
 
-def anomaly(original_image, map_combined, path, image_name, y_class, color=(255, 0, 0)):
-    defect_class = 'class'
-    test_output_dir = os.path.join(path, 'test')
-    # 폴더 구조 생성
-    if not os.path.exists(os.path.join(test_output_dir, defect_class)):
-        os.makedirs(os.path.join(test_output_dir, defect_class))
-    normalized_image = (original_image - original_image.min()) / (original_image.max() - original_image.min())
+def gpu_percentage(exit_flag, gpu):
+    gpu_usage_list = []
 
-    # [0, 255] 범위로 스케일링 후 numpy 변환
-    original_image_np = (normalized_image.cpu().squeeze(0).permute(1, 2, 0).numpy() * 255).astype(np.uint8)
-    original_image_np = np.ascontiguousarray(original_image_np)
-    # Resize the anomaly map to the original image's shape.
-    anomaly_map_resized = cv2.resize(map_combined, (original_image_np.shape[1], original_image_np.shape[0]))
+    while not exit_flag.is_set():
+        try:
+            gpu_usage = GPUtil.getGPUs()[gpu].load * 100.0
+            gpu_usage_list.append(gpu_usage)
 
-    # 이미지를 0-255 범위로 normalize
-    anomaly_map_normalized = cv2.normalize(anomaly_map_resized, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"Error while monitoring GPU usage: {e}")
 
-    # 이미지 이진화 (binary thresholding)
-    ret, thresh = cv2.threshold(anomaly_map_normalized, 127, 255, cv2.THRESH_BINARY)
+    if gpu == 0:
+        time.sleep(1)
+    else:
+        time.sleep(3)
 
-    # 외곽선 찾기
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if gpu_usage_list:
+        min_usage = min(gpu_usage_list)
+        max_usage = max(gpu_usage_list)
+        avg_usage = sum(gpu_usage_list) / len(gpu_usage_list)
 
-    # 원본 이미지에 외곽선 그리기
-    highlighted_image = cv2.drawContours(original_image_np, contours, -1, color, 2)
+        print(f"\nGPU{gpu} percentage usage")
+        print(f"Minimum GPU usage: {min_usage:.2f}%")
+        print(f"Maximum GPU usage: {max_usage:.2f}%")
+        print(f"Average GPU usage: {avg_usage:.2f}%\n")
 
-    # 이미지 저장
-    img_nm = os.path.splitext(image_name)[0]
-    img_nm = img_nm + y_class + '_anomaly'
-    file = os.path.join(test_output_dir, defect_class, img_nm + '.tiff')
-    tifffile.imwrite(file, highlighted_image)
+def gpu_memory(exit_flag, gpu):
+    gpu_memory_list = []
+
+    while not exit_flag.is_set():
+        try:
+            gpu_memory_kb = GPUtil.getGPUs()[gpu].memoryUsed
+            gpu_memory_mb = gpu_memory_kb / 1024  # KB를 MB로 변환
+            gpu_memory_list.append(gpu_memory_mb)
+
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"Error while monitoring GPU memory usage: {e}")
+
+    if gpu == 0:
+        time.sleep(2)
+    else:
+        time.sleep(4)
+
+    if gpu_memory_list:
+        min_memory = min(gpu_memory_list)
+        max_memory = max(gpu_memory_list)
+        avg_memory = sum(gpu_memory_list) / len(gpu_memory_list)
+
+        print(f"\nGPU{gpu} memory usage")
+        print(f"Minimum GPU memory usage: {min_memory:.2f} MB")
+        print(f"Maximum GPU memory usage: {max_memory:.2f} MB")
+        print(f"Average GPU memory usage: {avg_memory:.2f} MB\n")
+
+
+if __name__ == '__main__':
+    exit_flag = threading.Event()
+
+    gpu0_percentage_thread = threading.Thread(
+        target=gpu_percentage,
+        args=(exit_flag,0,)
+    )
+    gpu0_percentage_thread.start()
+
+    gpu0_usage_thread = threading.Thread(
+        target=gpu_memory,
+        args=(exit_flag,0,)
+    )
+    gpu0_usage_thread.start()
+
+    gpu1_percentage_thread = threading.Thread(
+        target=gpu_percentage,
+        args=(exit_flag,1,)
+    )
+    gpu1_percentage_thread.start()
+
+    gpu1_usage_thread = threading.Thread(
+        target=gpu_memory,
+        args=(exit_flag,1,)
+    )
+    gpu1_usage_thread.start()
+
+
+    time.sleep(60)
+
+
+    exit_flag.set()
+
+    gpu0_percentage_thread.join()
+    gpu0_usage_thread.join()
+
+
+    gpu1_percentage_thread.join()
+    gpu1_usage_thread.join()
