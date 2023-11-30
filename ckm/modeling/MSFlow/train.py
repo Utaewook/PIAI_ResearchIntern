@@ -90,6 +90,7 @@ def inference_meta_epoch(c, epoch, loader, extractor, parallel_flows, fusion_flo
     gt_label_list = list()
     outputs_list = [list() for _ in parallel_flows]
     size_list = []
+
     start = time.time()
     with torch.no_grad():
         # 로더를 순회하며 이미지와 라벨을 가져옴
@@ -122,15 +123,14 @@ def inference_meta_epoch(c, epoch, loader, extractor, parallel_flows, fusion_flo
         mean_epoch_loss = epoch_loss / image_count
         fps = len(loader.dataset) / (time.time() - start)
         print(datetime.datetime.now().strftime("[%Y-%m-%d-%H:%M:%S]"),
-            'Epoch {:d}   test loss: {:.3e}\tFPS: {:.1f}'.format(
-                epoch, mean_epoch_loss, fps))
+            'Epoch {:d}   test loss: {:.3e}\tFPS: {:.1f}\tloader size: {:d}'.format(
+                epoch, mean_epoch_loss, fps,len(loader.dataset)))
 
 
-    """
-    gt_label_list = 각 이미지의 실제 레이블을 저장하는 리스트
-    outputs_list = 모델의 각 parallel flow에서 생성된 이상치 확률값을 저장하는 리스트
-    size_list = 각 이미지에서 계산된 이상치 확률 맵의 크기를 저장하는 리스트
-    """
+    # gt_label_list = 각 이미지의 실제 레이블을 저장하는 리스트
+    # outputs_list = 모델의 각 parallel flow에서 생성된 이상치 확률값을 저장하는 리스트
+    # size_list = 각 이미지에서 계산된 이상치 확률 맵의 크기를 저장하는 리스트
+
     return gt_label_list, outputs_list, size_list
 
 
@@ -172,6 +172,7 @@ def train(c):
         best_det_auroc = eval_det_loc_only(det_auroc_obs, epoch, gt_label_list, anomaly_score)
 
         # anomaly map, 원본, segmenatation 이미지 저장
+        
         # for i, (src, anomaly_map) in enumerate(zip(test_dataset, anomaly_score_map_add)):
         #     img,_ = src
             

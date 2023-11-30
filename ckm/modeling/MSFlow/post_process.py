@@ -8,8 +8,8 @@ def post_process(c, size_list, outputs_list):
     print('Multi-scale sizes:', size_list)
 
     # logp_maps: 다중 스케일의 로그 확률 맵들이 저장
+    # prop_maps: 속성 맵들이 저장
     logp_maps = [list() for _ in size_list]
-
     prop_maps = [list() for _ in size_list]
 
     for l, outputs in enumerate(outputs_list):

@@ -227,7 +227,7 @@ def gpu_memory(exit_flag, gpu, result_queue):
     while not exit_flag.is_set():
         try:
             gpu_memory_kb = GPUtil.getGPUs()[gpu].memoryUsed
-            gpu_memory_mb = gpu_memory_kb / 1024  # KB를 MB로 변환
+            gpu_memory_mb = gpu_memory_kb / 1024  # KB를 MB로 변환 -> 근데 크기가 크면 자동으로 단위 변경해줘서 GB로 나옴
             gpu_memory_list.append(gpu_memory_mb)
 
             time.sleep(0.5)
@@ -325,7 +325,7 @@ if __name__ == '__main__':
     import default as c
 
     gpu_info = main(c)
-    print(f"\nGPU{gpu_info['gpu_num']} Information:")
-    print("GPU Percentage:", gpu_info["gpu_percentage"])
-    print("GPU Memory:", gpu_info["gpu_memory"])
-    print("CUDA Memory:", gpu_info["cuda_memory"])
+    print(f"\n#GPU{gpu_info['gpu_num']} Information:")
+    print("#GPU Percentage:", gpu_info["gpu_percentage"])
+    print("#GPU Memory:", gpu_info["gpu_memory"])
+    print("#CUDA Memory:", gpu_info["cuda_memory"])
