@@ -19,7 +19,7 @@ lr_warmup = True
 lr_warmup_from = 0.3
 lr_warmup_epochs = 3
 batch_size = 8
-workers = 4
+workers = 4 # dataloader로 데이터 불러 올 때 병렬 로딩을 위한 프로세스 수
 
 
 # dataset
@@ -48,4 +48,4 @@ pro_eval_interval = 6
 threshold = 0.925
 
 # results
-work_dir = './work_dirs'
+work_dir = './temp_results'

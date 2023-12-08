@@ -1,0 +1,8 @@
+conda create -n msflow python=3.9
+conda activate msflow
+conda install scikit-learn scikit-image -y
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+pip install FrEIA
+pip install gputil
+conda install matplotlib
+pip install opencv-python

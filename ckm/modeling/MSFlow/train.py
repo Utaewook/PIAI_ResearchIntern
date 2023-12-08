@@ -16,10 +16,12 @@ from post_process import post_process
 from utils import Score_Observer, t2np, positionalencoding2d, save_weights, load_weights, segmentation
 from evaluations import eval_det_loc, eval_det_loc_only
 
-
+# 딥러닝 모델 (extractor, parllel flow, fusion flow)에 이미지를 입력하고, 각 레벨에서 생성된 z_list와 야코비안 값을 반환하는 함수
 def model_forward(c, extractor, parallel_flows, fusion_flow, image):
     # print(f'mode-{c.mode}  image info-{image.shape}')
-    h_list = extractor(image)
+    h_list = extractor(image) # 이미지의 특징 추출
+
+    # 풀링 레이어 설정
     if c.pool_type == 'avg':
         pool_layer = nn.AvgPool2d(3, 2, 1)
     elif c.pool_type == 'max':
@@ -29,6 +31,8 @@ def model_forward(c, extractor, parallel_flows, fusion_flow, image):
 
     z_list = []
     parallel_jac_list = []
+
+    # 각 level (Scale)별 pooling 후 parallel flow에 입력 및 야코비안 값 저장
     for idx, (h, parallel_flow, c_cond) in enumerate(zip(h_list, parallel_flows, c.c_conds)):
         y = pool_layer(h)
         B, _, H, W = y.shape
@@ -41,6 +45,9 @@ def model_forward(c, extractor, parallel_flows, fusion_flow, image):
     z_list, fuse_jac = fusion_flow(z_list)
     jac = fuse_jac + sum(parallel_jac_list)
 
+    # z_list는 각 스케일에서 생성된 특징을 담고 있는 리스트
+    # jac는 야코비안 행렬을 나타내며, 각 스케일에서의 야코비안 값을 모두 합한 것 -> 최종적으로 얻어진 특징에 대한 민감도
+    # 주로 야코비안은 민감도 분석이나 역전파에 사용 (이후에 loss 계산에 활용됨)
     return z_list, jac
 
 

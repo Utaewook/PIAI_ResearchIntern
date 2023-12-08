@@ -1,0 +1,23 @@
+Train command args
+python main.py --mode train --extractor [resnet 종류 중 하나] --batch-size [8 | 16]
+
+
+Test command args
+
+resnet18 - gpu 0
+python main.py --mode test --eval_ckpt E:\codes\ckm\modeling\MSFlow\work_dirs\msflow_resnet18_avgpool_pl258\textile\best_det.pt --extractor resnet18 --batch-size 400 --gpu 0
+
+resnet18 - gpu 1
+python main.py --mode test --eval_ckpt E:\codes\ckm\modeling\MSFlow\work_dirs\msflow_resnet18_avgpool_pl258\textile\best_det.pt --extractor resnet18 --batch-size 400 --gpu 1
+
+resnet34 - gpu 0
+python main.py --mode test --eval_ckpt E:\codes\ckm\modeling\MSFlow\work_dirs\msflow_resnet34_avgpool_pl258\textile\best_det.pt --extractor resnet34 --batch-size 400 --gpu 0
+
+resnet34 - gpu 1
+python main.py --mode test --eval_ckpt E:\codes\ckm\modeling\MSFlow\work_dirs\msflow_resnet34_avgpool_pl258\textile\best_det.pt --extractor resnet34 --batch-size 400 --gpu 1
+
+wide_resnet50_2 - gpu 0
+python main.py --mode test --eval_ckpt E:\codes\ckm\modeling\MSFlow\work_dirs\msflow_wide_resnet50_2_avgpool_pl258\textile\best_det.pt --batch-size 400 --gpu 0
+
+wide_resnet50_2 - gpu 1
+python main.py --mode test --eval_ckpt E:\codes\ckm\modeling\MSFlow\work_dirs\msflow_wide_resnet50_2_avgpool_pl258\textile\best_det.pt --batch-size 400 --gpu 1

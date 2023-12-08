@@ -118,6 +118,7 @@ class CKMDataset(Dataset):
         self.x, self.y = self.load_dataset_folder()
 
         # set transforms
+        # resize하는 부분
         self.transform_x = T.Compose([
             T.Resize(c.input_size, InterpolationMode.LANCZOS),
             T.ToTensor()])
