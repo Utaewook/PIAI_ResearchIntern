@@ -6,6 +6,10 @@ import cv2
 import numpy as np
 import torch
 
+# 2차원 위치 인코딩 생성
+# D: 모델의 차원
+# H: 위치의 높이, W: 위치의 너비
+# return: DxHxW 위치 행렬
 def positionalencoding2d(D, H, W):
     """
     :param D: dimension of the model
@@ -21,13 +25,15 @@ def positionalencoding2d(D, H, W):
     div_term = torch.exp(torch.arange(0.0, D, 2) * -(math.log(1e4) / D))
     pos_w = torch.arange(0.0, W).unsqueeze(1)
     pos_h = torch.arange(0.0, H).unsqueeze(1)
-    P[0:D:2, :, :]  = torch.sin(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, H, 1)
-    P[1:D:2, :, :]  = torch.cos(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, H, 1)
-    P[D::2,  :, :]  = torch.sin(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, W)
-    P[D+1::2,:, :]  = torch.cos(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, W)
+    P[0:D:2, :, :] = torch.sin(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, H, 1)
+    P[1:D:2, :, :] = torch.cos(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, H, 1)
+    P[D::2,  :, :] = torch.sin(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, W)
+    P[D+1::2,:, :] = torch.cos(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, W)
     return P
 
 
+# train 과정에서 모델의 가중치를 저장하는 함수
+# epoch: train 할 때의 현재 epoch
 def save_weights(epoch, parallel_flows, fusion_flow, model_name, ckpt_dir, optimizer=None):
     if not os.path.exists(ckpt_dir):
         os.makedirs(ckpt_dir)
@@ -42,6 +48,7 @@ def save_weights(epoch, parallel_flows, fusion_flow, model_name, ckpt_dir, optim
     torch.save(state, file_path)
 
 
+# 주어진 경로에서 모델의 가중치 파일을 불러옴(.pt)
 def load_weights(parallel_flows, fusion_flow, ckpt_path, optimizer=None):
     print('Loading weights from {}'.format(ckpt_path))
     state_dict = torch.load(ckpt_path)
@@ -68,6 +75,7 @@ def load_weights(parallel_flows, fusion_flow, ckpt_path, optimizer=None):
     return state_dict['epoch']
 
 
+# 입력받은 이미지와 anomaly map을 이용하여 contour를 찾고, 원본 이미지에 contour를 그린 이미지를 반환하는 함수
 def segmentation(src_image, anomaly_map, threshold=0.7):
     # 텐서를 넘파이 배열로 변환
     # src_image = (src_image.cpu().permute(1, 2, 0).numpy() * 255).astype(np.uint8)

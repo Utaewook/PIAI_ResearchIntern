@@ -105,6 +105,8 @@ class MVTecDataset(Dataset):
 
 
 # 환편기 데이터들을 데이터 셋 객체로 변환
+# 데이터 파일 경로를 모두 읽어와서 저장한 다음
+# loader를 통해 getitem 메소드가 호출 될 때 마다 이미지를 읽어 전처리를 한 후 반환
 class CKMDataset(Dataset):
     def __init__(self, c, is_train=True):
         assert c.class_name in BOOLEAN_CLASS_NAMES, 'class_name: {}, should be in {}'.format(c.class_name,
@@ -172,7 +174,7 @@ class CKMDataset(Dataset):
 
 # 카메라 혹은 이미지 스트림을 가져와서 데이터 셋으로 만들어야 함
 # 프레임을 멀티스레드로 읽어서 frame_buffer를 채우는 과정
-# getitems로 이미지를 반환하는 메소드 또한 필요함
+# getitem 메소드로 이미지를 반환하는 메소드 또한 필요함
 
 # class ImageStreamDataset(Dataset):
 #     def __init__(self, c, camera_id=0):

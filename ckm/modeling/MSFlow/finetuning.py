@@ -12,13 +12,20 @@ from evaluations import eval_det_loc_only
 from train import train_meta_epoch, inference_meta_epoch
 
 
-def finetuning(extractor, parallel_flows, fusion_flow):
+def finetuning(extractor, parallel_flows, fusion_flow, optimizer):
     c.mode = 'train'
     c.data_path = '../../dataset/CKM_finetuning'
 
     # model build
-    if not extractor and not parallel_flows and not fusion_flow:
-        ckpt_path = 'E:\\codes\\ckm\\modeling\\MSFlow\\work_dirs\\msflow_wide_resnet50_2_avgpool_pl258\\textile\\best_det.pt'
+    if not extractor and not parallel_flows and not fusion_flow and not optimizer:
+        # finetuning할 모델의 경로
+        # ckpt_path = 'E:\\codes\\ckm\\modeling\\MSFlow\\work_dirs\\msflow_wide_resnet50_2_avgpool_pl258\\textile\\best_det.pt'
+
+        # pruned model을 finetuning
+        # 경로 및 파라미터 설정
+        ckpt_path = 'E:\\codes\\ckm\\modeling\\MSFlow\\work_dirs\\pruned\\pruned34_0.5.pt'
+        c.ckpt_dir = 'E:\\codes\\ckm\\modeling\\MSFlow\\work_dirs\\pruned\\'
+        c.extractor = 'resnet34'
 
         extractor, output_channels = build_extractor(c)
         extractor = extractor.to(c.device).eval()
@@ -33,7 +40,7 @@ def finetuning(extractor, parallel_flows, fusion_flow):
 
         det_auroc_obs = Score_Observer('Det.AUROC', c.meta_epochs)
 
-        _ = load_weights(parallel_flows, fusion_flow, ckpt_path, optimizer)
+        _ = load_weights(parallel_flows, fusion_flow, ckpt_path, None)
 
 
     train_dataset = CKMDataset(c, is_train=True)
@@ -61,7 +68,6 @@ def finetuning(extractor, parallel_flows, fusion_flow):
     else:
         decay_scheduler = None
 
-
     # train epoch 시작
     for epoch in range(start_epoch, c.meta_epochs):
         print()
@@ -73,10 +79,10 @@ def finetuning(extractor, parallel_flows, fusion_flow):
 
         best_det_auroc = eval_det_loc_only(det_auroc_obs, epoch, gt_label_list, anomaly_score)
 
-        save_weights(epoch, parallel_flows, fusion_flow, 'finetuned_last', c.ckpt_dir, optimizer)
+        save_weights(epoch, parallel_flows, fusion_flow, 'pruned_finetuned_last', c.ckpt_dir, optimizer)
         if best_det_auroc and c.mode == 'train':
-            save_weights(epoch, parallel_flows, fusion_flow, 'finetuned_best_det', c.ckpt_dir)
+            save_weights(epoch, parallel_flows, fusion_flow, 'pruned_finetuned_best_det', c.ckpt_dir)
 
 
 if __name__ == '__main__':
-    finetuning(None,None,None)
+    finetuning(None,None,None, None)
